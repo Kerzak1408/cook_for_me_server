@@ -1,5 +1,6 @@
 package Controller;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.context.ApplicationContext;
@@ -7,6 +8,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
 
 import Database.DBHandler;
 import Database.User;
@@ -28,7 +31,12 @@ public class RegistrationController {
         User dbUser = new User(name);
         if (dbHandler.existsUser(name, dbUser)) {
         	if (pass.equals(dbUser.getPass())) {
-        		return "OK";
+        		if (dbUser.getNickname() != null) {
+        			return "OK";
+        		} else {
+        			return "NICKNAME";
+        		}
+        		
         	}
         	return "WRONGPASS";
         }
@@ -53,6 +61,52 @@ public class RegistrationController {
     		@RequestParam(value="pass") String pass) {
     	System.out.println("New user: name=" + name + " pass= " + pass );
     	DBHandler dbHandler = DBHandler.getInstance();
-    	return dbHandler.insertUser(new User(name, pass)) ? "Registration completed! :)" : "Error";
+    	int id = dbHandler.insertUser(new User(name, pass));
+    	dbHandler.createRankingTable("ranking" + id);
+    	return "Registration completed! :)";
+    	
+    }
+    
+    @RequestMapping("/setnickname")
+    public String setNickname(
+    		@RequestParam(value="name") String name,
+    		@RequestParam(value="pass") String pass,
+    		@RequestParam(value="nickname") String nickname) {
+    	 DBHandler dbHandler = DBHandler.getInstance();
+         User dbUser = new User(name);
+         if (dbHandler.existsUser(name, dbUser)) {
+         	if (pass.equals(dbUser.getPass())) {
+         		if (dbUser.getNickname() == null) {
+         			//check availability
+         			if (dbHandler.isNicknameAvailable(nickname)) {
+         				// set nickname
+             			dbHandler.setUsersNickname(dbUser.getName(), nickname);
+             			return "OK";
+         			} else {
+         				// nickname unavailable
+         				return "UNIQUE";
+         			}
+         			
+         		} else {
+         			return "hasNickname#" + dbUser.getNickname();
+         		}
+         	} else {
+         		// Hacking?
+         		return "WRONGPASS";
+         	}
+         }
+    	return "ERROR";
+    }
+    
+    @RequestMapping("/searchusers")
+    public String searchUsers(
+    		@RequestParam(value="name") String pattern)  {
+    	System.out.println("Search task with pattern: " + pattern);
+    	DBHandler handler = DBHandler.getInstance();
+    	List<String> list = handler.getFilteredNicknames(pattern);
+    	Gson gson = new Gson();
+    	String result = gson.toJson(list);
+    	System.out.println("Search result: " + result);
+    	return result;
     }
 }
