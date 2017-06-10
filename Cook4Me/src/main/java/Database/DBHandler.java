@@ -170,7 +170,8 @@ public class DBHandler{
 				rankings.put(whoCommented, stars);
 				sum += stars;
 			}
-			result = new Ranking(comments, rankings, sum/counter);
+			float avgRanking = (counter == 0) ? 0 : (sum/counter);
+			result = new Ranking(comments, rankings, avgRanking);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
