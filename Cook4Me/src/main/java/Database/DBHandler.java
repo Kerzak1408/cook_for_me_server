@@ -1,10 +1,14 @@
 package Database;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import DataStructures.Ranking;
 public class DBHandler{  
 	
 	private static DBHandler instance = null;
@@ -16,6 +20,7 @@ public class DBHandler{
 	private java.sql.PreparedStatement setNickNameStmnt;
 	private java.sql.PreparedStatement isNicknameAvailable;
 	private java.sql.PreparedStatement selectFilteredNicknamesStmnt;
+	private java.sql.PreparedStatement findIdStmnt;
 	
 	private DBHandler() {
 		try {
@@ -29,6 +34,7 @@ public class DBHandler{
 			setNickNameStmnt = connection.prepareStatement("update users set nickname = ? where name = ?");
 			isNicknameAvailable = connection.prepareStatement("select * from users where nickname = ?");
 			selectFilteredNicknamesStmnt = connection.prepareStatement("select nickname from users where nickname regexp ? limit 10");
+			findIdStmnt = connection.prepareStatement("select id from users where nickname = ?");
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -111,7 +117,7 @@ public class DBHandler{
 	
 	public void createRankingTable(String tableName) {
 		try {
-			java.sql.PreparedStatement stmnt = connection.prepareStatement("create table " + tableName +" (name VARCHAR(40), stars INT, comment VARCHAR(1000))");
+			java.sql.PreparedStatement stmnt = connection.prepareStatement("create table " + tableName +" (name VARCHAR(40), stars INT, comment VARCHAR(1000), primary key (name))");
 			System.out.println(stmnt);
 			stmnt.executeUpdate();
 		} catch (SQLException e) {
@@ -140,6 +146,75 @@ public class DBHandler{
 			e.printStackTrace();
 		}
 		return result;
+	}
+
+	public Ranking getRanking(String name) {
+		Ranking result = null;
+		try {
+			findIdStmnt.setString(1, name);
+			ResultSet resultSet = findIdStmnt.executeQuery();
+			resultSet.next();
+			int id = resultSet.getInt(1);
+			java.sql.PreparedStatement selectAllRankings = connection.prepareStatement("select * from ranking" + id);
+			ResultSet allRankings = selectAllRankings.executeQuery();
+			HashMap<String, String> comments = new HashMap<>();
+			HashMap<String, Integer> rankings = new HashMap<>(); 
+			float sum = 0;
+			int counter = 0;
+			while(allRankings.next()) {
+				counter++;
+				String whoCommented = allRankings.getString(1);
+				int stars = allRankings.getInt(2);
+				String comment = allRankings.getString(3);
+				comments.put(whoCommented, comment);
+				rankings.put(whoCommented, stars);
+				sum += stars;
+			}
+			result = new Ranking(comments, rankings, sum/counter);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	public void InsertOrUpdateRanking(String table, String name, int stars, String comment) {
+		String query = "INSERT INTO " + table + " VALUES ('" + name + "', " + stars + ", '" + comment + "') ON DUPLICATE KEY UPDATE stars = " + stars + ", comment = '" + comment + "'";
+		System.out.println("RANKING UPDATE: " + query);
+		try {
+			java.sql.PreparedStatement stmnt = connection.prepareStatement(query);
+			stmnt.execute();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public int selectUsersId(String nickname) {
+		try {
+			findIdStmnt.setString(1, nickname);
+			ResultSet result = findIdStmnt.executeQuery();
+			result.next();
+			return result.getInt(1);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return -1;
+		
+	}
+	
+	public String selectNicknameByMail(String mail) {
+		try {
+			selectUserStmnt.setString(1, mail);
+			ResultSet resultSet = selectUserStmnt.executeQuery();
+			resultSet.next();
+			return resultSet.getString(4);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "error";
 	}
 	
 }

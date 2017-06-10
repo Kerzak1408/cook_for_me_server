@@ -3,14 +3,19 @@ package Controller;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 
+import DataStructures.Ranking;
 import Database.DBHandler;
 import Database.User;
 import Mail.MailMail;
@@ -32,7 +37,7 @@ public class RegistrationController {
         if (dbHandler.existsUser(name, dbUser)) {
         	if (pass.equals(dbUser.getPass())) {
         		if (dbUser.getNickname() != null) {
-        			return "OK";
+        			return "OK#" + dbUser.getNickname();
         		} else {
         			return "NICKNAME";
         		}
@@ -100,7 +105,7 @@ public class RegistrationController {
     
     @RequestMapping("/searchusers")
     public String searchUsers(
-    		@RequestParam(value="name") String pattern)  {
+    		@RequestParam(value="pattern") String pattern)  {
     	System.out.println("Search task with pattern: " + pattern);
     	DBHandler handler = DBHandler.getInstance();
     	List<String> list = handler.getFilteredNicknames(pattern);
@@ -109,4 +114,38 @@ public class RegistrationController {
     	System.out.println("Search result: " + result);
     	return result;
     }
+    
+    @RequestMapping("/getuserranking")
+    public String getUserRanking(
+    		@RequestParam(value = "name") String name) {
+    	System.out.println("RankingRequestfor name = " + name);
+    	DBHandler handler = DBHandler.getInstance();
+    	Ranking ranking = handler.getRanking(name);
+    	Gson gson = new Gson();
+    	String result = gson.toJson(ranking);
+    	System.out.println("Sending ranking of " + name + ": " + gson);
+    	return result;
+    }
+    
+    @RequestMapping(value = "/updateuserranking", method = RequestMethod.POST)
+    public String updateUserRanking(HttpServletRequest request,
+    		@RequestParam(value = "name") String name,
+    		@RequestParam(value = "pass") String pass,
+    		@RequestParam(value = "cook") String cook,    		
+    		@RequestParam(value = "stars") int stars) {
+    	String comment = request.getParameter("comment");
+    	System.out.println("BODY: " + comment);
+    	DBHandler dbHandler = DBHandler.getInstance();
+    	User dbUser = new User(name);
+    	if (dbHandler.existsUser(name, dbUser)) {
+          	if (pass.equals(dbUser.getPass())) {
+          		// User authenticated, proceed to the update
+          		int id = dbHandler.selectUsersId(cook);
+          		String nickname = dbHandler.selectNicknameByMail(name);
+          		dbHandler.InsertOrUpdateRanking("ranking" + id , nickname, stars, comment);
+          		return "UPDATED";
+          	}
+      	}
+		return "ERROR";
+	}
 }
