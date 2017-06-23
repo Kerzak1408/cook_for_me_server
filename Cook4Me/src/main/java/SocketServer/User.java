@@ -41,7 +41,7 @@ public class User extends Thread {
 					CookingData data = gson.fromJson(lineArr[1], CookingData.class);
 					myLogin = data.getLogin();
 					server.addOrUpdateCook(myLogin, line);
-					server.broadcast(line);
+					
 				} else if ("refresh".equals(lineArr[0])) {
 					server.sendCooksToUser(this);
 				} else if ("cancelCooking".equals(lineArr[0])) {

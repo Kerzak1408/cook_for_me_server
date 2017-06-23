@@ -24,6 +24,7 @@ public class CookingData implements Serializable {
     private int hourTo;
     private int minuteTo;
     private int portions;
+    private int availablePortions;
     private boolean takeAwayOnly;
     private int price;
     private String notes;
@@ -208,5 +209,13 @@ public class CookingData implements Serializable {
 
 	public void setCategories(List<String> categories) {
 		this.categories = categories;
+	}
+
+	public int getAvailablePortions() {
+		return availablePortions;
+	}
+
+	public void setAvailablePortions(int availablePortions) {
+		this.availablePortions = availablePortions;
 	}
 }

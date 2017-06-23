@@ -12,6 +12,8 @@ import java.util.List;
 import com.google.gson.Gson;
 
 import DataStructures.CookingData;
+import DataStructures.Ranking;
+import Database.DBHandler;
 import Serialization.GsonTon;
 
 public class Server extends Thread{
@@ -63,7 +65,7 @@ public class Server extends Thread{
 	
 	public void addOrUpdateCook(String login, String serializedData) {
 		String[] serializedDataArr = serializedData.split("#");
-		cooks.put(login, serializedData);
+		
 		registeredCustomers.put(login, new ArrayList<>());
 		User cook = users.get(login);
 		Gson gson = GsonTon.getInstance().getGson();
@@ -74,6 +76,12 @@ public class Server extends Thread{
 				data.getHourTo(), data.getMinuteTo());
 		Date dateTo = calendar.getTime();
 		finishCookingTimes.put(dateTo, login);
+		DBHandler dbHandler = DBHandler.getInstance();
+		Ranking ranking = dbHandler.getRankingByLogin(login);
+		data.setRanking(ranking.getRanking());
+		String rankedData = "cook#" + gson.toJson(data);
+		cooks.put(login, rankedData);
+		broadcast(rankedData);
 	}
 	
 	public void cancelCooking(String login) {

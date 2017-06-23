@@ -147,11 +147,26 @@ public class DBHandler{
 		}
 		return result;
 	}
+	
+	public Ranking getRankingByLogin(String login) {
+		
+		try {
+			selectUserStmnt.setString(1, login);
+			ResultSet resultSet = selectUserStmnt.executeQuery();
+			resultSet.next();
+			String nickname = resultSet.getString(4);
+			return getRanking(nickname);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 
-	public Ranking getRanking(String name) {
+	public Ranking getRanking(String nickname) {
 		Ranking result = null;
 		try {
-			findIdStmnt.setString(1, name);
+			findIdStmnt.setString(1, nickname);
 			ResultSet resultSet = findIdStmnt.executeQuery();
 			resultSet.next();
 			int id = resultSet.getInt(1);
@@ -217,5 +232,7 @@ public class DBHandler{
 		}
 		return "error";
 	}
+
+
 	
 }
