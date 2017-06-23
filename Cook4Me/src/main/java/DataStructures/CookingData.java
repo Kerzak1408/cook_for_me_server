@@ -1,7 +1,9 @@
-package SocketServer;
+package DataStructures;
 
 import java.io.Serializable;
 import java.util.List;
+
+import SocketServer.LatLng;
 
 /**
  * Created by Kerzak on 24-May-17.

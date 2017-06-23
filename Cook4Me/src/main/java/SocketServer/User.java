@@ -7,8 +7,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Date;
 
 import com.google.gson.Gson;
+
+import DataStructures.CookingData;
+import Serialization.GsonTon;
 
 public class User extends Thread {
 	Socket socket;
@@ -33,7 +37,7 @@ public class User extends Thread {
 
 				String[] lineArr = line.split("#");
 				if ("cook".equals(lineArr[0])) {
-					Gson  gson = new Gson();
+					Gson  gson = GsonTon.getInstance().getGson();
 					CookingData data = gson.fromJson(lineArr[1], CookingData.class);
 					myLogin = data.getLogin();
 					server.addOrUpdateCook(myLogin, line);
@@ -67,7 +71,5 @@ public class User extends Thread {
 		// TODO Auto-generated method stub
 		return myLogin;
 	}
-	
-	
 	
 }
