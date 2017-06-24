@@ -50,7 +50,10 @@ public class User extends Thread {
 					server.registerCooking(myLogin, lineArr[1]);
 				} else if ("login".equals(lineArr[0])) {
 					myLogin = lineArr[1];
+					System.out.println("LOGGED (thread) USER: " + myLogin);
 					server.addUser(this);
+				} else if ("logout".equals(lineArr[0])) {
+					server.logoutUser(this);
 				}
 				
 				

@@ -37,6 +37,7 @@ public class RegistrationController {
         if (dbHandler.existsUser(name, dbUser)) {
         	if (pass.equals(dbUser.getPass())) {
         		if (dbUser.getNickname() != null) {
+        			System.out.println("LOGGED: " + dbUser.getNickname());
         			return "OK#" + dbUser.getNickname();
         		} else {
         			return "NICKNAME";

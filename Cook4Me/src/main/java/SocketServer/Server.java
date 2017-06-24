@@ -18,9 +18,11 @@ import Serialization.GsonTon;
 
 public class Server extends Thread{
 	
+	// Key = login, Value = User's thread
 	HashMap<String, User> users;
 	// Key = login, Value = serialized CookingData (json)
 	HashMap<String, String> cooks;
+	// Key = login, Value = List of registered customers.
 	HashMap<String, List<String>> registeredCustomers;
 	HashMap<Date, String> finishCookingTimes;
 	
@@ -80,6 +82,7 @@ public class Server extends Thread{
 		Ranking ranking = dbHandler.getRankingByLogin(login);
 		data.setRanking(ranking.getRanking());
 		String rankedData = "cook#" + gson.toJson(data);
+		cancelCooking(login);
 		cooks.put(login, rankedData);
 		broadcast(rankedData);
 	}
@@ -97,14 +100,24 @@ public class Server extends Thread{
 	}
 
 	public void registerCooking(String myLogin, String cook) {
-		List cooksCustomers= registeredCustomers.get(cook);
+		List<String> cooksCustomers= registeredCustomers.get(cook);
 		cooksCustomers.add(myLogin);
 		registeredCustomers.put(myLogin, cooksCustomers);
 		broadcast("registered#" + cook + "#" + cooksCustomers.size());
 	}
 
 	public void addUser(User user) {
-		users.put(user.getLogin(), user);
+		String login = user.getLogin();
+		users.put(login, user);
+		System.out.println("LOGIN = " + login);
+		for (String key : cooks.keySet()) {
+			System.out.println(key + " : " + cooks.get(key));
+		}
+		if (cooks.containsKey(login)){
+			int customersCount = registeredCustomers.get(login).size();
+			String serializedData = cooks.get(login);
+			user.sendMessage("youcook#" + customersCount + "#" + serializedData);
+		} 
 	}
 
 	public void checkState() {
@@ -118,6 +131,12 @@ public class Server extends Thread{
 			}
 		}
 		
+	}
+
+	public void logoutUser(User user) {
+		
+		users.remove(user.getLogin());
+		System.out.println("User " + user.getLogin() + " logged out");
 	}
 
 	
