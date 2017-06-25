@@ -148,14 +148,14 @@ public class DBHandler{
 		return result;
 	}
 	
-	public Ranking getRankingByLogin(String login) {
+	public Ranking getRankingByLogin(String login, StringBuilder outNickname) {
 		
 		try {
 			selectUserStmnt.setString(1, login);
 			ResultSet resultSet = selectUserStmnt.executeQuery();
 			resultSet.next();
-			String nickname = resultSet.getString(4);
-			return getRanking(nickname);
+			outNickname.append(resultSet.getString(4));
+			return getRanking(outNickname.toString());
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -80,8 +80,10 @@ public class Server extends Thread{
 		Date dateTo = calendar.getTime();
 		finishCookingTimes.put(dateTo, login);
 		DBHandler dbHandler = DBHandler.getInstance();
-		Ranking ranking = dbHandler.getRankingByLogin(login);
+		StringBuilder outNickname = new StringBuilder();
+		Ranking ranking = dbHandler.getRankingByLogin(login, outNickname);
 		data.setRanking(ranking.getRanking());
+		data.setNickname(outNickname.toString());
 		String rankedData = "cook#" + gson.toJson(data);
 		cancelCooking(login);
 		cooks.put(login, rankedData);

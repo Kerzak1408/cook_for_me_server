@@ -11,6 +11,7 @@ import SocketServer.LatLng;
 
 public class CookingData implements Serializable {
     private String login;
+    private String nickname;
     private String name;
     private List<String> categories;
     private int dayFrom;
@@ -221,5 +222,13 @@ public class CookingData implements Serializable {
 
 	public void decreaseAvailablePortions() {
 		availablePortions--;
+	}
+
+	public String getNickname() {
+		return nickname;
+	}
+
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
 	}
 }
