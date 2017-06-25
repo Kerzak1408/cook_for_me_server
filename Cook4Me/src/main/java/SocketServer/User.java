@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class User extends Thread {
 	public void run() {
 		try {
 			writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
-			server.sendCooksToUser(this);
+			
 			BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			String line = "";
 			while ((line = reader.readLine()) != null) {
@@ -50,9 +51,10 @@ public class User extends Thread {
 				} else if ("cancelCooking".equals(lineArr[0])) {
 					server.cancelCooking(myLogin);
 				} else if ("register".equals(lineArr[0])) {
-					server.registerCooking(myLogin, lineArr[1]);
+					server.registerCooking(myLogin, lineArr[1], this);
 				} else if ("login".equals(lineArr[0])) {
 					myLogin = lineArr[1];
+					server.sendCooksToUser(this);
 					System.out.println("LOGGED (thread) USER: " + myLogin);
 					server.addUser(this);
 				} else if ("logout".equals(lineArr[0])) {

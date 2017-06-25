@@ -25,6 +25,7 @@ public class Server extends Thread{
 	// Key = login, Value = List of registered customers.
 	HashMap<String, List<String>> registeredCustomers;
 	HashMap<Date, String> finishCookingTimes;
+	HashMap<String, List<String>> usersRegistrations;
 	
 	@Override
 	public void run() {
@@ -32,6 +33,7 @@ public class Server extends Thread{
 		cooks = new HashMap<>();
 		registeredCustomers = new HashMap<>();
 		finishCookingTimes = new HashMap<>();
+		usersRegistrations = new HashMap<>();
 		ServerStateChecker serverStateChecker = new ServerStateChecker(this);
 		serverStateChecker.start();
 		
@@ -60,9 +62,25 @@ public class Server extends Thread{
 	
 	public void sendCooksToUser(User user) {
 		System.out.println("Sending " + cooks.values().size() + " cooks to " + user.getName());
-		for (String cook : cooks.values()) {
-        	user.sendMessage(cook);
+		if (!usersRegistrations.containsKey(user.getLogin())) {
+			System.out.println("sendCooksToUser: NEW USER REG");
+			usersRegistrations.put(user.getLogin(), new ArrayList<>());
+		}
+		for(String login : usersRegistrations.keySet()) {
+			System.out.println("KEY USER REG == " + login);
+		}
+		System.out.println("USER LOGIN == " + user.getLogin());
+		List<String> registrations = usersRegistrations.get(user.getLogin());
+		System.out.println("(SEND) users' reg length: " + registrations.size());
+		for (String cook : cooks.keySet()) {
+			if (registrations.contains(cook)) {
+				user.sendMessage(cooks.get(cook) + "#1");
+			} else {
+				user.sendMessage(cooks.get(cook) + "#0");
+			}
+        	
         }
+		
 	}
 	
 	public void addOrUpdateCook(String login, String serializedData) {
@@ -92,6 +110,9 @@ public class Server extends Thread{
 	
 	public void cancelCooking(String login) {
 		System.out.println("CANCELING COOKING: " + login);
+		for (List<String> registrations : usersRegistrations.values()) {
+			registrations.remove(login);
+		}
 		cooks.remove(login);
 		broadcast("remove#" + login);
 	}
@@ -102,7 +123,7 @@ public class Server extends Thread{
 		}
 	}
 
-	public void registerCooking(String myLogin, String cook) {
+	public void registerCooking(String myLogin, String cook, User user) {
 		List<String> cooksCustomers= registeredCustomers.get(cook);
 		cooksCustomers.add(myLogin);
 		registeredCustomers.put(myLogin, cooksCustomers);
@@ -113,15 +134,18 @@ public class Server extends Thread{
 		String newCookingDataStr = gson.toJson(cookingData);
 		cooks.put(cook, "cook#" + newCookingDataStr);
 		broadcast("registered#" + cook + "#" + cooksCustomers.size());
+		if (!usersRegistrations.containsKey(myLogin)) {
+			System.out.println("registerCooking: NEW USER REG");
+			usersRegistrations.put(myLogin, new ArrayList<>());
+		}
+		List<String> registration = usersRegistrations.get(myLogin);
+		System.out.println("ADDING REG: " + cook);
+		registration.add(cook);
 	}
 
 	public void addUser(User user) {
 		String login = user.getLogin();
 		users.put(login, user);
-		System.out.println("LOGIN = " + login);
-		for (String key : cooks.keySet()) {
-			System.out.println(key + " : " + cooks.get(key));
-		}
 		if (cooks.containsKey(login)){
 			int customersCount = registeredCustomers.get(login).size();
 			String serializedData = cooks.get(login);
@@ -137,13 +161,13 @@ public class Server extends Thread{
 			if (now.compareTo(date) > 0) {
 				cancelCooking(finishCookingTimes.get(date));
 				finishCookingTimes.remove(date);
+				
 			}
 		}
 		
 	}
 
 	public void logoutUser(User user) {
-		
 		users.remove(user.getLogin());
 		System.out.println("User " + user.getLogin() + " logged out");
 	}
