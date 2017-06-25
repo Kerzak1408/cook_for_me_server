@@ -67,8 +67,9 @@ public class Server extends Thread{
 	
 	public void addOrUpdateCook(String login, String serializedData) {
 		String[] serializedDataArr = serializedData.split("#");
-		
-		registeredCustomers.put(login, new ArrayList<>());
+		if (!registeredCustomers.containsKey(login)) {
+			registeredCustomers.put(login, new ArrayList<>());
+		}
 		User cook = users.get(login);
 		Gson gson = GsonTon.getInstance().getGson();
 		System.out.println("JSON to be parsed: " + serializedDataArr[1]);
@@ -103,6 +104,12 @@ public class Server extends Thread{
 		List<String> cooksCustomers= registeredCustomers.get(cook);
 		cooksCustomers.add(myLogin);
 		registeredCustomers.put(myLogin, cooksCustomers);
+		String cookingDataStr = cooks.get(cook).split("#")[1];
+		Gson gson = GsonTon.getInstance().getGson();
+		CookingData cookingData = gson.fromJson(cookingDataStr, CookingData.class);
+		cookingData.decreaseAvailablePortions();
+		String newCookingDataStr = gson.toJson(cookingData);
+		cooks.put(cook, "cook#" + newCookingDataStr);
 		broadcast("registered#" + cook + "#" + cooksCustomers.size());
 	}
 

@@ -218,4 +218,8 @@ public class CookingData implements Serializable {
 	public void setAvailablePortions(int availablePortions) {
 		this.availablePortions = availablePortions;
 	}
+
+	public void decreaseAvailablePortions() {
+		availablePortions--;
+	}
 }
