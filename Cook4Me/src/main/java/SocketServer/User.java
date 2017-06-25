@@ -8,10 +8,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Date;
+import java.util.List;
 
 import com.google.gson.Gson;
 
 import DataStructures.CookingData;
+import Database.DBHandler;
 import Serialization.GsonTon;
 
 public class User extends Thread {
@@ -54,6 +56,14 @@ public class User extends Thread {
 					server.addUser(this);
 				} else if ("logout".equals(lineArr[0])) {
 					server.logoutUser(this);
+				} else if ("search".equals(lineArr[0])) {
+					System.out.println("Search task with pattern: " + lineArr[1]);
+			    	DBHandler handler = DBHandler.getInstance();
+			    	List<String> list = handler.getFilteredNicknames(lineArr[1]);
+			    	Gson gson = new Gson();
+			    	String result = gson.toJson(list);
+			    	System.out.println("Search result: " + result);
+			    	sendMessage("searchResults#" + result);
 				}
 				
 				
