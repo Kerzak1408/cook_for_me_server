@@ -13,6 +13,7 @@ import java.util.List;
 import com.google.gson.Gson;
 
 import DataStructures.CookingData;
+import DataStructures.Ranking;
 import Database.DBHandler;
 import Serialization.GsonTon;
 
@@ -64,6 +65,14 @@ public class User extends Thread {
 			    	String result = gson.toJson(list);
 			    	System.out.println("Search result: " + result);
 			    	sendMessage("searchResults#" + result);
+				} else if ("getRanking".equals(lineArr[0])) {
+			    	System.out.println("RankingRequestfor name = " + lineArr[1]);
+			    	DBHandler handler = DBHandler.getInstance();
+			    	Ranking ranking = handler.getRanking(lineArr[1]);
+			    	Gson gson = new Gson();
+			    	String result = gson.toJson(ranking);
+			    	System.out.println("Sending ranking of " + lineArr[1] + ": " + gson);
+			    	sendMessage("ranking#" + result);
 				}
 				
 				
